@@ -1,4 +1,6 @@
-# Use an official PHP runtime as a parent image
+# Dockerfile for PHP-FPM (Laravel App)
+
+# Use the official PHP image with FPM
 FROM php:8.1-fpm
 
 # Set working directory
@@ -26,24 +28,23 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set memory limit to prevent Composer memory errors
+# Prevent Composer memory limit issues
 ENV COMPOSER_MEMORY_LIMIT=-1
 
-# Clear Composer cache (optional)
-RUN composer clear-cache
-
-# Copy the Laravel application files
+# Copy the Laravel application code into the container
 COPY . .
 
-# Install PHP dependencies without optimizing the autoloader
-RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts --verbose
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
 
 # Install Node.js dependencies and build assets
 RUN npm install && npm run build
 
-# Set correct file permissions
+# Set the correct file permissions for Laravel
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Expose port 9000 and start PHP-FPM
+# Expose port 9000 (PHP-FPM port)
 EXPOSE 9000
+
+# Start PHP-FPM
 CMD ["php-fpm"]
