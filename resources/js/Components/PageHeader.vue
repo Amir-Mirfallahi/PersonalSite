@@ -1,5 +1,11 @@
 <script setup>
+import {Link} from "@inertiajs/vue3";
 
+defineProps({
+    title: String,
+    breadcrumb: Array,
+    subtitle: String
+})
 </script>
 
 <template>
@@ -9,7 +15,8 @@
                 <div class="row items-end" data-aos="fade">
                     <div class="sm:col-8 text-center sm:text-left">
                         <h1 class="text-[2.5rem] leading-[3rem] sm:leading-9 md:text-5xl font-secondary font-medium -mt-[6px] text-center sm:text-left mb-6 sm:mb-8">
-                            About Me</h1>
+                            {{ title }}
+                        </h1>
                         <nav aria-label="breadcrumb">
                             <ul class="flex items-center justify-center sm:justify-start [&>*:last-child]:pointer-events-none">
                                 <li>
@@ -23,18 +30,19 @@
                                         <path d="M19 16l3 3l-3 3"></path>
                                     </svg>
                                 </li>
-                                <li>
-                                    <a class='link' href='index.html'>Home</a>
-                                </li>
-                                <li><span class="px-4">•</span></li>
-                                <li>
-                                    <a class='link' href='index.html'>About</a>
-                                </li>
+                                <template v-for="(item, index) in breadcrumb" :key="index">
+                                    <li>
+                                        <Link class='link' :href='item.link'>{{ item.name }}</Link>
+                                    </li>
+                                    <li v-if="index !== breadcrumb.length - 1">
+                                        <span class="px-4">•</span>
+                                    </li>
+                                </template>
                             </ul>
                         </nav>
                     </div>
                     <div class="sm:col-4 block mt-6 sm:mt-0 text-center sm:text-right">
-                        <span class="font-secondary text-2xl leading-none text-white/75">Who I Am</span>
+                        <span class="font-secondary text-2xl leading-none text-white/75">{{ subtitle }}</span>
                     </div>
                 </div>
             </div>
