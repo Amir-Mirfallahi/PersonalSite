@@ -26,19 +26,22 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Prevent Composer memory limit issues
+# Set memory limit to prevent Composer memory errors
 ENV COMPOSER_MEMORY_LIMIT=-1
 
-# Copy the Laravel application
+# Clear Composer cache (optional)
+RUN composer clear-cache
+
+# Copy the Laravel application files
 COPY . .
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
+# Install PHP dependencies without optimizing the autoloader
+RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts --verbose
 
 # Install Node.js dependencies and build assets
 RUN npm install && npm run build
 
-# Set correct file permissions for Laravel directories
+# Set correct file permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Expose port 9000 and start PHP-FPM
