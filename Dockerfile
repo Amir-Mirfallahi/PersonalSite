@@ -1,50 +1,35 @@
-# Dockerfile for PHP-FPM (Laravel App)
-
-# Use the official PHP image with FPM
 FROM php:8.1-fpm
 
-# Set working directory
+RUN apt-get update && apt-get install -y \
+    supervisor \
+    nginx \
+    curl \
+    git \
+    jq
+
 WORKDIR /var/www/html
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    libpng-dev \
-    libjpeg62-turbo-dev \
-    libfreetype6-dev \
-    libzip-dev \
-    zip \
-    unzip \
-    libonig-dev \
-    libxml2-dev \
-    pkg-config \
-    libssl-dev \
-    nodejs \
-    npm \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql gd zip bcmath opcache
+# Copy .env file (if using a separate one for production)
+COPY .env .env
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Prevent Composer memory limit issues
-ENV COMPOSER_MEMORY_LIMIT=-1
-
-# Copy the Laravel application code into the container
+# Copy project code
 COPY . .
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
+RUN composer install --prefer-dist --no-dev
 
-# Install Node.js dependencies and build assets
-RUN npm install && npm run build
+# Install Node.js and npm (if not using a separate container for Vite)
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get update && apt-get install -y nodejs
 
-# Set the correct file permissions for Laravel
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+WORKDIR /var/www/html/public
 
-# Expose port 9000 (PHP-FPM port)
-EXPOSE 9000
+RUN npm install
 
-# Start PHP-FPM
-CMD ["php-fpm"]
+# Build front-end assets (adjust command if using a custom Vite build script)
+RUN npm run build
+
+EXPOSE 80
+
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+CMD ["supervisord", "-n"]
