@@ -1,63 +1,39 @@
-# Stage 1: Composer Dependencies
-FROM composer:2 AS composer
-WORKDIR /app
+# Use an official PHP runtime as a parent image
+FROM php:8.1-fpm
 
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-scripts --no-progress --no-interaction --prefer-dist
+# Set working directory
+WORKDIR /var/www/html
 
-# Stage 2: Node Dependencies (Vite)
-FROM node:18-alpine AS node_modules
-WORKDIR /app
-
-COPY package.json package-lock.json ./
-RUN npm install
-
-# Stage 3: Application Setup
-FROM php:8.2-fpm-alpine
-
-# Install required PHP extensions and system packages
-RUN apk add --no-cache \
-    bash \
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
     git \
     curl \
     libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    oniguruma-dev \
-    libxml2-dev \
-    zip \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
     libzip-dev \
+    zip \
     unzip \
-    nginx \
-    supervisor
+    nodejs \
+    npm \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo pdo_mysql gd zip
 
-RUN docker-php-ext-install \
-    pdo_mysql \
-    mbstring \
-    exif \
-    pcntl \
-    bcmath \
-    gd \
-    zip
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Install Composer and Node.js
-COPY --from=composer /usr/bin/composer /usr/bin/composer
-COPY --from=node_modules /app/node_modules ./node_modules
-
-# Copy the application code
-WORKDIR /var/www/html
+# Copy the Laravel application
 COPY . .
 
-# Copy the built assets from Vite
-RUN npm run build
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html
+# Install Node.js dependencies and build assets
+RUN npm install && npm run build
 
-# Expose port 80
-EXPOSE 80
+# Set file permissions for Laravel
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Start PHP-FPM and Nginx
-COPY ./docker/supervisord.conf /etc/supervisord.conf
-
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+# Expose port 9000 and start PHP-FPM
+EXPOSE 9000
+CMD ["php-fpm"]
