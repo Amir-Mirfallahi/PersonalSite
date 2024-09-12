@@ -9,8 +9,6 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /var/www/html
 
-# Copy .env file (if using a separate one for production)
-COPY .env .env
 
 # Copy project code
 COPY . .
