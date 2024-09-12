@@ -2,6 +2,5 @@
 node_modules/
 storage/
 vendor/
-.env
 public/mix-manifest.json
 # Add other files or patterns to exclude as needed
