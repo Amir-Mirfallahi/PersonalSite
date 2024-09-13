@@ -1,0 +1,1 @@
+import{o,b as s,u as t}from"./app-Se0Ks5nc.js";const e="/build/assets/logo-B7RJGugU.svg",c=["src"],l={__name:"ApplicationLogo",setup(n){return(r,a)=>(o(),s("img",{src:t(e),alt:"Logo"},null,8,c))}};export{l as _};

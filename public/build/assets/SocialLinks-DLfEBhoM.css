@@ -1,0 +1,1 @@
+.v-spinner .v-moon1{animation:v-moonStretchDelay .6s 0s infinite linear;animation-fill-mode:forwards;position:relative}.v-spinner .v-moon2{animation:v-moonStretchDelay .6s 0s infinite linear;animation-fill-mode:forwards;opacity:.8;position:absolute}.v-spinner .v-moon3{opacity:.1}@keyframes v-moonStretchDelay{to{transform:rotate(360deg)}}

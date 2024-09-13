@@ -1,0 +1,1 @@
+import{_ as t}from"./_plugin-vue_export-helper-DlAUqK2U.js";import{o,b as c,d as s,D as r}from"./app-Se0Ks5nc.js";const n={},a={class:"py-28 bg-white text-dark rounded-b-2xl"},d={class:"container"},i={class:"row md:gx-4 gy-5"};function _(e,l){return o(),c("section",a,[s("div",d,[s("div",i,[r(e.$slots,"default")])])])}const p=t(n,[["render",_]]);export{p as default};
