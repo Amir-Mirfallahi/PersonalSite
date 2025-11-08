@@ -8,18 +8,18 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring zip exif pcntl bcmath sockets intl
 
 # Swoole is installed from GitHub
-RUN curl -L -o swoole.tar.gz https://github.com/swoole/swoole-src/archive/refs/tags/v5.1.0.tar.gz \
+RUN curl -L -o swoole.tar.gz https://github.com/swoole/swoole-src/archive/refs/tags/v6.1.1.tar.gz \
     && tar -xf swoole.tar.gz \
-    && cd swoole-src-5.1.0 \
+    && cd swoole-src-6.1.1 \
     && phpize \
     && ./configure \
     && make -j$(nproc) \
     && make install \
     && docker-php-ext-enable swoole
 
-# Node.js 18 (Vite compatible) and Yarn installation
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y nodejs
+# Node.js 22 (Vite compatible)
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs 
 
 # Composer installation
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -38,7 +38,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-di
 
 # Node files (cache for Vite build)
 COPY package.json package-lock.json ./
-RUN npm install --frozen-lockfile
+RUN npm install --frozen
 
 # Copy the rest of the project files
 COPY . .
@@ -51,23 +51,23 @@ RUN npm run build
 
 # Laravel config cache (to be done at runtime, not during build)
 RUN php artisan config:clear \
- && php artisan route:clear \
- && php artisan view:clear
+    && php artisan route:clear \
+    && php artisan view:clear
 
 # File permissions
 RUN chown -R www-data:www-data /var/www \
- && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 EXPOSE 9000
 
 # Startup script
 RUN echo '#!/bin/bash\n\
-# Cache configurations after environment variables are loaded\n\
-php artisan config:cache\n\
-php artisan route:cache\n\
-php artisan view:cache\n\
-# Start the server\n\
-exec php artisan octane:start --server=swoole --host=0.0.0.0 --port=9000\n\
-' > /start.sh && chmod +x /start.sh
+    # Cache configurations after environment variables are loaded\n\
+    php artisan config:cache\n\
+    php artisan route:cache\n\
+    php artisan view:cache\n\
+    # Start the server\n\
+    exec php artisan octane:start --server=swoole --host=0.0.0.0 --port=9000\n\
+    ' > /start.sh && chmod +x /start.sh
 
 CMD ["sh", "-c", "echo 'APP_KEY:' $APP_KEY && php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan octane:start --server=swoole --host=0.0.0.0 --port=9000"]
