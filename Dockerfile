@@ -19,8 +19,7 @@ RUN curl -L -o swoole.tar.gz https://github.com/swoole/swoole-src/archive/refs/t
 
 # Node.js 18 (Vite compatible) and Yarn installation
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y nodejs \
-    && npm install -g yarn
+    && apt-get install -y nodejs
 
 # Composer installation
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -38,8 +37,8 @@ RUN mkdir -p bootstrap/cache storage/app storage/framework/cache/data \
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
 
 # Node files (cache for Vite build)
-COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+COPY package.json package-lock.json ./
+RUN npm install --frozen-lockfile
 
 # Copy the rest of the project files
 COPY . .
