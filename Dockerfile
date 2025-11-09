@@ -52,7 +52,8 @@ RUN npm run build
 # Laravel config cache (to be done at runtime, not during build)
 RUN php artisan config:clear \
     && php artisan route:clear \
-    && php artisan view:clear
+    && php artisan view:clear \ 
+    && php artisan key:generate
 
 # File permissions
 RUN chown -R www-data:www-data /var/www \
