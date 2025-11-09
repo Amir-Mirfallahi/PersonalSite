@@ -42,12 +42,16 @@ RUN npm install --frozen
 
 # Copy the rest of the project files
 COPY . .
+COPY ./.env.example ./.env
 
 # Run Composer post-scripts
 RUN composer dump-autoload --optimize
 
 # Vite build
 RUN npm run build
+
+# Migrating Database (Default Sqlite)
+RUN php artisan migrate
 
 # Laravel config cache (to be done at runtime, not during build)
 RUN php artisan config:clear \
